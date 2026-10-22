@@ -1,0 +1,12 @@
+import os
+from building import *
+
+# Add source code
+src = Glob('*.c')
+# Kitchen Panel mode: keep only romfs.c (provides /webnet/*.wav prompt files),
+# skip webnet_wifi.c (references C++ symbols / WiFi stack).
+if GetDepend(['BSP_USING_KITCHEN_PANEL']):
+    src = ['romfs.c']
+group = DefineGroup('xiaozhi_webnet', src, depend = [''])
+
+Return('group')

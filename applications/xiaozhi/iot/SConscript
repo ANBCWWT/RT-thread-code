@@ -1,0 +1,12 @@
+from building import *
+
+cwd = GetCurrentDir()
+src = Glob('*.c')
+# Kitchen Panel mode: skip all C++ sources (thing_manager etc.)
+if not GetDepend(['BSP_USING_KITCHEN_PANEL']):
+    src += Glob('*.cpp')
+CPPPATH = [cwd]
+
+group = DefineGroup('xiaozhi_iot', src, depend = [''], CPPPATH = CPPPATH)
+
+Return('group')

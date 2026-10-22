@@ -1,0 +1,18 @@
+from building import *
+import os
+
+cwd = GetCurrentDir()
+
+# 语音控制子模块（voice_ctrl：WiFi 连接 / SNTP / WebSocket / 录音 / 讯飞 ASR）
+# 仅编译本目录下的 C 源文件
+src = Glob('*.c')
+
+# 头文件搜索路径：
+# - 本目录（voice_ctrl 内部头文件）
+# - applications（API.h 密钥文件所在，用户保管，只引用不读写）
+#   用 normpath 规范化，避免带 '..' 的路径在构建系统中丢失
+path = [cwd, os.path.normpath(os.path.join(cwd, '..', '..'))]
+
+group = DefineGroup('voice_ctrl', src, depend = [''], CPPPATH = path)
+
+Return('group')

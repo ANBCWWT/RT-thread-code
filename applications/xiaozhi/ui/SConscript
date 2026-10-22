@@ -1,0 +1,22 @@
+import os
+from building import *
+
+cwd  = GetCurrentDir()
+path = []
+path += [cwd]
+# Add source code
+src = Glob('*.c')
+# Kitchen Panel mode: keep only the Chinese font data (xiaozhi_font.c),
+# skip xiaozhi_ui.c (XiaoZhi UI, references C++ symbols).
+if GetDepend(['BSP_USING_KITCHEN_PANEL']):
+	src = []
+    #src = ['xiaozhi_font.c']
+
+group = DefineGroup('xiaozhi_ui', src, depend = [''], CPPPATH = path)
+
+list = os.listdir(cwd)
+for item in list:
+    if os.path.isfile(os.path.join(cwd, item, 'SConscript')):
+        group = group + SConscript(os.path.join(item, 'SConscript'))
+
+Return('group')

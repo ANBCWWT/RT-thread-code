@@ -1,0 +1,20 @@
+from building import *
+import os
+
+cwd = GetCurrentDir()
+
+# 智能厨房面板：仅编译本目录下的 C 源文件
+src = Glob('*.c')
+
+# 头文件搜索路径
+# - 本目录（kitchen 模块内部头文件）
+# - libraries/Common/board/ports/lvgl（lv_port_disp.h / lv_port_indev.h，由 BSP_USING_LVGL 挂载）
+path = [cwd]
+
+group = DefineGroup('kitchen', src, depend = [''], CPPPATH = path)
+
+# 递归编译 voice_ctrl 子模块（语音控制：WiFi 连接 / 录音 / 云端 ASR）
+if os.path.isfile(os.path.join(cwd, 'voice_ctrl', 'SConscript')):
+    group = group + SConscript(os.path.join('voice_ctrl', 'SConscript'))
+
+Return('group')

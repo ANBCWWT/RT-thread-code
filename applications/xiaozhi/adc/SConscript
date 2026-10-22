@@ -1,0 +1,11 @@
+import os
+from building import *
+
+# Add source code
+src = Glob('*.c')
+# Kitchen Panel mode: skip ADC module (references xiaozhi_ui_update_adc).
+if GetDepend(['BSP_USING_KITCHEN_PANEL']):
+    src = []
+group = DefineGroup('Applications', src, depend = [''])
+
+Return('group')

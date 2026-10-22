@@ -1,0 +1,26 @@
+from building import *
+import os
+
+cwd     = GetCurrentDir()
+
+# Add all subdirectories to include path
+path = []
+path += [cwd]
+path += [cwd + '/ui', cwd + '/webnet', cwd + '/iot', cwd + '/mcp']
+# Add edge-impulse directory for wake word detection
+path += [cwd + '/../../edge-impulse']
+
+src = Glob('*.c')
+# Kitchen Panel mode: skip C++ sources (xiaozhi.cpp / xiaozhi_audio.cpp).
+# C files here (opus_heap.c) are self-contained and still compile.
+if not GetDepend(['BSP_USING_KITCHEN_PANEL']):
+    src += Glob('*.cpp')
+
+group = DefineGroup('xiaozhi', src, depend = [''], CPPPATH = path)
+
+list = os.listdir(cwd)
+for item in list:
+    if os.path.isfile(os.path.join(cwd, item, 'SConscript')):
+        group = group + SConscript(os.path.join(item, 'SConscript'))
+
+Return('group')
