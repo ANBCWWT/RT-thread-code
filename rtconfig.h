@@ -56,6 +56,10 @@
 #define RT_CONSOLE_DEVICE_NAME "uart2"
 /* end of Kernel Device Object */
 #define RT_VER_NUM 0x50002
+
+/* 低功耗阶段1（手动添加）：开启 RT-Thread PM 电源管理框架，
+ * 内核 idle 线程自动调用 rt_system_power_manager() */
+#define RT_USING_PM
 /* end of RT-Thread Kernel */
 #define RT_USING_CACHE
 

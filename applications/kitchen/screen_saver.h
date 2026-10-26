@@ -29,4 +29,9 @@ void screen_saver_set_timeout(rt_uint32_t timeout_ms);
  * 已亮屏时无操作。唤醒不经过触摸路径，不触发触摸误触保护。 */
 void screen_saver_force_wakeup(void);
 
+/* 息屏锁定：定时器到点等需持续提醒的场景调用，期间不进入息屏
+ * （即使无触摸超时）。与 screen_saver_hold_release() 配对使用。 */
+void screen_saver_hold(void);
+void screen_saver_hold_release(void);
+
 #endif /* SCREEN_SAVER_H */

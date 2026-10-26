@@ -45,6 +45,11 @@
 #define TIMER_PRESETS_COUNT  3
 #define TIMER_PRESETS        { 3, 5, 10 }
 
+/* 到点循环响铃：间隔（ms）。到点播第一声，此后每隔该间隔再播一次，直到按 OK 清除。
+ * 节流放在 ui_home_widgets_tick()（UI 线程每秒执行）里，不做独立软定时器——
+ * 软定时器线程栈仅 512B，voice_prompt_play 内部有文件系统 stat 调用，栈不够。 */
+#define TIMER_RING_INTERVAL_MS  3000
+
 static lv_font_t const *s_font_name  = RT_NULL;
 static lv_font_t const *s_font_value = RT_NULL;
 
@@ -67,6 +72,9 @@ static int s_custom_min = 15;   /* 自定义分钟数（±1 步进，1~99） */
 /* DONE 闪烁：边框在红/白间翻转 */
 static int  s_done_blink    = 0;
 static char s_last_count[8] = {0};   /* 倒计时文本缓存，避免每秒无效重绘 */
+
+/* 循环响铃节流：上次响铃时刻（到点第一声也算），每 TIMER_RING_INTERVAL_MS 一声 */
+static rt_tick_t s_last_ring_tick = 0;
 
 /* ---- 通用小工具 ---- */
 static void card_style(lv_obj_t *card, uint32_t bg)
@@ -227,11 +235,15 @@ static void timer_preset_event_cb(lv_event_t *e)
 }
 
 /* 定时器到点回调（kitchen_ui 主循环每秒 tick 触发）：
- * 播放工程已有点击提示音（button.wav）+ 息屏时强制亮屏 */
+ * 立即播第一声提示音 + 息屏时强制亮屏，然后锁定息屏——
+ * 到点状态持续亮屏提醒；后续每 TIMER_RING_INTERVAL_MS 一声由
+ * ui_home_widgets_tick() 节流触发，直到用户按 OK 清除（timer_main_cb）。 */
 static void timer_on_expire(void)
 {
     voice_prompt_play_button();
     screen_saver_force_wakeup();
+    s_last_ring_tick = rt_tick_get();
+    screen_saver_hold();
 }
 
 /* 自定义 -1：只调整分钟并刷新显示，不启动（用户拍板：加减完按 Start 才开始） */
@@ -272,6 +284,8 @@ static void timer_main_cb(lv_event_t *e)
     else
     {
         kitchen_timer_cancel();
+        /* 用户按 OK/Cancel 清除：解除息屏锁定（循环响铃节流随之失效） */
+        screen_saver_hold_release();
     }
 }
 
@@ -467,6 +481,17 @@ void ui_home_widgets_tick(void)
 {
     /* 定时器状态机推进（到点回调播提示音 + 强制唤醒） */
     kitchen_timer_tick();
+
+    /* 循环响铃：DONE 状态下每 TIMER_RING_INTERVAL_MS 再播一声，直到按 OK。
+     * 放在 UI 线程每秒 tick（亮屏态，任何页面都执行），不依赖软定时器。 */
+    if (kitchen_timer_state() == KITCHEN_TIMER_DONE)
+    {
+        if (rt_tick_get() - s_last_ring_tick >= rt_tick_from_millisecond(TIMER_RING_INTERVAL_MS))
+        {
+            s_last_ring_tick = rt_tick_get();
+            voice_prompt_play_button();
+        }
+    }
 
     ui_refresh_weather();
     ui_refresh_timer();
