@@ -59,13 +59,6 @@ packages/           # 软件包（LVGL 等）
 2. **语音密钥**：语音识别使用讯飞流式听写。请自行创建 `applications/API.h`，内容为三个宏 `APIID` / `APISecret` / `APIKey`（参考 `applications/kitchen/voice_ctrl/asr_config.h` 头注释）。密钥文件未随仓库提交，注意不要公开。
 3. **天气城市（可选）**：修改 `applications/kitchen/weather.c` 中的 `WEATHER_LAT` / `WEATHER_LON` 为你所在城市坐标。
 
-## 演示要点
-
-- 语音："打开厨房灯" / "关闭厨房灯"（卡片同步亮灭 + 提示音）
-- 天气：联网后主页天气卡自动显示温度与描述
-- 定时器：预设 3min 演示到点提示音 + 强制唤醒 + 循环响铃（每 3s 一声，按 OK 停）
-- 息屏：60s 无触摸黑屏，触摸即时唤醒（中断）不误触
-- 系统页：CPU / RAM / 线程列表实时监控
 
 ## 说明
 
